@@ -61,7 +61,7 @@ type WebhookConfig struct {
 	URL              string
 	AuthKey          string // X-Ins-Auth-Key header value
 	Timeout          time.Duration
-	MaxRetryAttempts int // Maximum retry attempts for webhook calls (fixed at 3)
+	MaxRetryAttempts int // Maximum retry attempts for webhook calls
 	RetryDelay       time.Duration
 }
 

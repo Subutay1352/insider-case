@@ -13,7 +13,6 @@ import (
 	"time"
 )
 
-// WebhookClient implements message.WebhookClient using HTTP
 type WebhookClient struct {
 	client        *http.Client
 	webhookURL    string
@@ -22,7 +21,6 @@ type WebhookClient struct {
 	retryDelay    time.Duration
 }
 
-// NewWebhookClient creates a new WebhookClient
 func NewWebhookClient(cfg *config.Config) message.WebhookClient {
 	if cfg.Webhook.URL == "" {
 		panic("webhook URL cannot be empty")
@@ -39,7 +37,6 @@ func NewWebhookClient(cfg *config.Config) message.WebhookClient {
 	}
 }
 
-// SendMessage sends a message to the webhook with retry logic
 func (c *WebhookClient) SendMessage(ctx context.Context, req *message.WebhookRequest) (*message.WebhookResponse, error) {
 	var lastErr error
 
@@ -81,7 +78,6 @@ func (c *WebhookClient) SendMessage(ctx context.Context, req *message.WebhookReq
 	return nil, fmt.Errorf("failed after %d attempts: %w", c.retryAttempts+1, lastErr)
 }
 
-// HTTPError represents an HTTP error
 type HTTPError struct {
 	StatusCode int
 	Message    string
@@ -108,7 +104,7 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	if c.authKey != "" {
-		httpReq.Header.Set("X-Ins-Auth-Key", c.authKey)
+		httpReq.Header.Set("'x-ins-auth-key", c.authKey)
 	}
 
 	resp, err := c.client.Do(httpReq)

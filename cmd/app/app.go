@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-// App holds application dependencies
 type App struct {
 	Config    *config.Config
 	Service   *message.Service
@@ -30,7 +29,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	// Init Redis (optional)
+	// Init Redis
 	var cacheRepo message.CacheRepository
 	if redisClient, err := redisInfra.InitRedis(cfg); err == nil {
 		cacheRepo = redisInfra.NewCacheRepository(redisClient, cfg.Redis.TTL)
@@ -74,7 +73,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}, nil
 }
 
-// Shutdown gracefully shuts down the application
 func (a *App) Shutdown() {
 	logger.Info("Shutting down...")
 
