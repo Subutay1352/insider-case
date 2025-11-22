@@ -58,11 +58,11 @@ type RedisConfig struct {
 
 // WebhookConfig holds webhook configuration
 type WebhookConfig struct {
-	URL           string
-	AuthKey       string // X-Ins-Auth-Key header value
-	Timeout       time.Duration
-	RetryAttempts int
-	RetryDelay    time.Duration
+	URL              string
+	AuthKey          string // X-Ins-Auth-Key header value
+	Timeout          time.Duration
+	MaxRetryAttempts int // Maximum retry attempts for webhook calls (fixed at 3)
+	RetryDelay       time.Duration
 }
 
 // MessageConfig holds message-related configuration
@@ -137,11 +137,11 @@ func Load() *Config {
 			ConnectTimeout: getEnvAsDuration("REDIS_CONNECT_TIMEOUT", 5*time.Second),
 		},
 		Webhook: WebhookConfig{
-			URL:           getEnv("WEBHOOK_URL", "https://webhook.site/your-unique-id"),
-			AuthKey:       getEnv("WEBHOOK_AUTH_KEY", "your-secret-key"),
-			Timeout:       getEnvAsDuration("WEBHOOK_TIMEOUT", 30*time.Second),
-			RetryAttempts: getEnvAsInt("WEBHOOK_RETRY_ATTEMPTS", 3),
-			RetryDelay:    getEnvAsDuration("WEBHOOK_RETRY_DELAY", 1*time.Second),
+			URL:              getEnv("WEBHOOK_URL", "https://webhook.site/your-unique-id"),
+			AuthKey:          getEnv("WEBHOOK_AUTH_KEY", "your-secret-key"),
+			Timeout:          getEnvAsDuration("WEBHOOK_TIMEOUT", 30*time.Second),
+			MaxRetryAttempts: 3, // Fixed value, not from environment
+			RetryDelay:       getEnvAsDuration("WEBHOOK_RETRY_DELAY", 1*time.Second),
 		},
 		Scheduler: SchedulerConfig{
 			Interval:          getEnvAsDuration("SCHEDULER_INTERVAL", 2*time.Minute),

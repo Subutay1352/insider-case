@@ -11,7 +11,6 @@ import (
 func RunMigrations(db *gorm.DB) error {
 	logger.Info("Running database migrations...")
 
-	// Auto-migrate all models
 	if err := db.AutoMigrate(&message.Message{}); err != nil {
 		return err
 	}

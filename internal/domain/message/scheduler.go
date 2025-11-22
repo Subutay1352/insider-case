@@ -42,12 +42,10 @@ func (s *Scheduler) Start() error {
 		return ErrSchedulerRunning
 	}
 
-	// Create new context and ticker
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	s.ticker = time.NewTicker(s.interval)
 	s.isRunning = true
 
-	// Start the scheduler in a goroutine
 	go s.run()
 
 	return nil
@@ -79,7 +77,6 @@ func (s *Scheduler) StopAndWait(ctx context.Context) error {
 		return fmt.Errorf("scheduler is not running")
 	}
 
-	// Mark as stopping and get the context
 	done := make(chan struct{})
 	oldCtx := s.ctx
 	s.cancel()
@@ -89,9 +86,7 @@ func (s *Scheduler) StopAndWait(ctx context.Context) error {
 	s.isRunning = false
 	s.mu.Unlock()
 
-	// Wait for the goroutine to finish or timeout
 	go func() {
-		// Wait for context to be done (goroutine should exit)
 		<-oldCtx.Done()
 		close(done)
 	}()
@@ -113,7 +108,6 @@ func (s *Scheduler) IsRunning() bool {
 
 // run executes the scheduler loop
 func (s *Scheduler) run() {
-	// Send immediately on start
 	s.sendMessages()
 
 	for {

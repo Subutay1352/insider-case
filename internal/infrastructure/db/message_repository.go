@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Repository implements message.Repository using GORM (works with any database)
+// Repository implements message.Repository using GORM
 type Repository struct {
 	db *gorm.DB
 }
@@ -17,19 +17,19 @@ func NewRepository(db *gorm.DB, dbType string) message.Repository {
 	return &Repository{db: db}
 }
 
-// NewPostgresRepository creates a new Repository (kept for backward compatibility)
+// NewPostgresRepository creates a new Repository
 func NewPostgresRepository(db *gorm.DB) message.Repository {
 	return &Repository{db: db}
 }
 
-// GetUnsentMessages retrieves unsent messages (status = queued OR failed with retry_count < maxRetries) up to the specified limit
-func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetries int) ([]*message.Message, error) {
+// GetUnsentMessages retrieves unsent messages (status = queued OR failed with retry_count < maxRetryAttempts)
+func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
 	var messages []*message.Message
 	err := r.db.WithContext(ctx).
 		Where("status = ? OR (status = ? AND retry_count < ?)",
 			message.MessageStatusQueued,
 			message.MessageStatusFailed,
-			maxRetries).
+			maxRetryAttempts).
 		Order("created_at ASC").
 		Limit(limit).
 		Find(&messages).Error
@@ -44,6 +44,25 @@ func (r *Repository) UpdateMessageStatus(ctx context.Context, id uint, status me
 		Updates(map[string]interface{}{
 			"status":     status,
 			"message_id": messageID,
+		}).Error
+}
+
+// UpdateMessageStatusOnly updates only the status without changing messageID
+func (r *Repository) UpdateMessageStatusOnly(ctx context.Context, id uint, status message.MessageStatus) error {
+	return r.db.WithContext(ctx).
+		Model(&message.Message{}).
+		Where("id = ?", id).
+		Update("status", status).Error
+}
+
+// UpdateMessageStatusAndRetry updates both status and retry_count
+func (r *Repository) UpdateMessageStatusAndRetry(ctx context.Context, id uint, status message.MessageStatus, retryCount int) error {
+	return r.db.WithContext(ctx).
+		Model(&message.Message{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"status":      status,
+			"retry_count": retryCount,
 		}).Error
 }
 
@@ -66,7 +85,7 @@ func (r *Repository) UpdateMessageRetry(ctx context.Context, id uint, retryCount
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
 			"retry_count": retryCount,
-			"status":      message.MessageStatusQueued, // Retry için tekrar queued yap
+			"status":      message.MessageStatusQueued,
 		}).Error
 }
 
@@ -79,4 +98,3 @@ func (r *Repository) CountSentMessages(ctx context.Context) (int64, error) {
 		Count(&count).Error
 	return count, err
 }
-

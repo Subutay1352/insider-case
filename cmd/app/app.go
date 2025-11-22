@@ -50,7 +50,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		webhookClient,
 		cfg.Scheduler.MessagesPerBatch,
 		cfg.Message.MaxLength,
-		cfg.Webhook.RetryAttempts,
+		cfg.Webhook.MaxRetryAttempts,
 		cfg.Scheduler.RetryBaseDelay,
 	)
 	messageScheduler := message.NewScheduler(messageService, cfg.Scheduler.Interval, cfg.Scheduler.ProcessingTimeout)

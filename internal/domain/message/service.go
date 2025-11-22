@@ -13,7 +13,7 @@ type Service struct {
 	webhookClient    WebhookClient
 	messagesPerBatch int
 	maxMessageLength int
-	retryAttempts    int // Webhook retry attempts
+	maxRetryAttempts int
 	retryBaseDelay   time.Duration
 }
 
@@ -24,7 +24,7 @@ func NewService(
 	webhookClient WebhookClient,
 	messagesPerBatch int,
 	maxMessageLength int,
-	retryAttempts int,
+	maxRetryAttempts int,
 	retryBaseDelay time.Duration,
 ) *Service {
 	return &Service{
@@ -33,28 +33,25 @@ func NewService(
 		webhookClient:    webhookClient,
 		messagesPerBatch: messagesPerBatch,
 		maxMessageLength: maxMessageLength,
-		retryAttempts:    retryAttempts,
+		maxRetryAttempts: maxRetryAttempts,
 		retryBaseDelay:   retryBaseDelay,
 	}
 }
 
 // SendPendingMessages processes and sends queued messages
 func (s *Service) SendPendingMessages(ctx context.Context) error {
-	// Get unsent messages (only failed messages with retry_count < retryAttempts)
-	messages, err := s.repo.GetUnsentMessages(ctx, s.messagesPerBatch, s.retryAttempts)
+	messages, err := s.repo.GetUnsentMessages(ctx, s.messagesPerBatch, s.maxRetryAttempts)
 	if err != nil {
 		logger.Error("Failed to get unsent messages", "error", err)
 		return &ErrRepository{Operation: "get unsent messages", Err: err}
 	}
 
 	if len(messages) == 0 {
-		return nil // No messages to send
+		return nil
 	}
 
-	// Process each message
 	for _, msg := range messages {
 		if err := s.processMessage(ctx, msg); err != nil {
-			// Handle retry logic
 			if err := s.handleFailedMessage(ctx, msg, err); err != nil {
 				logger.Error("Failed to handle failed message",
 					"message_id", msg.ID,
@@ -70,7 +67,6 @@ func (s *Service) SendPendingMessages(ctx context.Context) error {
 
 // processMessage processes a single message
 func (s *Service) processMessage(ctx context.Context, msg *Message) error {
-	// Validate message content
 	if !msg.IsValidContent(s.maxMessageLength) {
 		return &ErrContentLengthExceeded{
 			Length:    len(msg.Content),
@@ -78,28 +74,23 @@ func (s *Service) processMessage(ctx context.Context, msg *Message) error {
 		}
 	}
 
-	// Prepare webhook request
 	webhookReq := &WebhookRequest{
 		To:      msg.To,
 		Content: msg.Content,
 	}
 
-	// Send message via webhook
 	resp, err := s.webhookClient.SendMessage(ctx, webhookReq)
 	if err != nil {
 		return &ErrWebhook{Err: err}
 	}
 
-	// Update message status
 	if err := s.repo.UpdateMessageStatus(ctx, msg.ID, MessageStatusSent, resp.MessageID); err != nil {
 		return &ErrRepository{Operation: "update message status", Err: err}
 	}
 
-	// Cache messageId to Redis (bonus requirement)
 	if s.cacheRepo != nil {
 		sentAt := time.Now()
 		if err := s.cacheRepo.SetMessageID(ctx, resp.MessageID, sentAt); err != nil {
-			// Log error but don't fail the operation
 			logger.Warn("Failed to cache messageId",
 				"message_id", resp.MessageID,
 				"error", err,
@@ -112,28 +103,24 @@ func (s *Service) processMessage(ctx context.Context, msg *Message) error {
 
 // handleFailedMessage handles retry logic for failed messages
 func (s *Service) handleFailedMessage(ctx context.Context, msg *Message, err error) error {
-	// Increment retry count
 	newRetryCount := msg.RetryCount + 1
 
 	logger.Error("Error processing message",
 		"message_id", msg.ID,
 		"retry_count", newRetryCount,
-		"max_retries", s.retryAttempts,
+		"max_retry_attempts", s.maxRetryAttempts,
 		"error", err,
 	)
 
-	// Check if we've exceeded max retries (retry_count < retryAttempts)
-	if newRetryCount >= s.retryAttempts {
-		// Mark as permanently failed
-		logger.Warn("Message exceeded max retries, marking as failed",
+	if newRetryCount >= s.maxRetryAttempts {
+		logger.Warn("Message exceeded max retry attempts, marking as permanently failed",
 			"message_id", msg.ID,
 			"retry_count", newRetryCount,
-			"max_retries", s.retryAttempts,
+			"max_retry_attempts", s.maxRetryAttempts,
 		)
-		return s.repo.UpdateMessageStatus(ctx, msg.ID, MessageStatusFailed, "")
+		return s.repo.UpdateMessageStatusAndRetry(ctx, msg.ID, MessageStatusFailed, newRetryCount)
 	}
 
-	// Update retry information and set status back to queued for retry
 	if err := s.repo.UpdateMessageRetry(ctx, msg.ID, newRetryCount); err != nil {
 		return err
 	}
@@ -141,7 +128,7 @@ func (s *Service) handleFailedMessage(ctx context.Context, msg *Message, err err
 	logger.Info("Message scheduled for retry",
 		"message_id", msg.ID,
 		"retry_count", newRetryCount,
-		"max_retries", s.retryAttempts,
+		"max_retry_attempts", s.maxRetryAttempts,
 	)
 
 	return nil

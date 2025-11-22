@@ -32,10 +32,10 @@ func NewWebhookClient(cfg *config.Config) message.WebhookClient {
 		client: &http.Client{
 			Timeout: cfg.Webhook.Timeout,
 		},
-		webhookURL:    cfg.Webhook.URL,
-		authKey:       cfg.Webhook.AuthKey,
-		retryAttempts: cfg.Webhook.RetryAttempts,
-		retryDelay:    cfg.Webhook.RetryDelay,
+	webhookURL:    cfg.Webhook.URL,
+	authKey:       cfg.Webhook.AuthKey,
+	retryAttempts: cfg.Webhook.MaxRetryAttempts,
+	retryDelay:    cfg.Webhook.RetryDelay,
 	}
 }
 
@@ -51,7 +51,6 @@ func (c *WebhookClient) SendMessage(ctx context.Context, req *message.WebhookReq
 				"url", c.webhookURL,
 			)
 
-			// Wait before retry
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
@@ -66,9 +65,8 @@ func (c *WebhookClient) SendMessage(ctx context.Context, req *message.WebhookReq
 
 		lastErr = err
 
-		// Don't retry on validation errors (4xx except 429)
 		if httpErr, ok := err.(*HTTPError); ok {
-			if httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 && httpErr.StatusCode != 429 {
+			if httpErr.StatusCode >= 400 && httpErr.StatusCode < 500 {
 				logger.Error("Client error, not retrying", "status_code", httpErr.StatusCode, "error", err)
 				return nil, err
 			}
@@ -109,7 +107,6 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 
 	httpReq.Header.Set("Content-Type", "application/json")
 
-	// Add X-Ins-Auth-Key header if configured
 	if c.authKey != "" {
 		httpReq.Header.Set("X-Ins-Auth-Key", c.authKey)
 	}
@@ -135,7 +132,6 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 		}
 	}
 
-	// If body is empty, return error
 	if len(body) == 0 {
 		logger.Error("Empty response body from webhook", "url", c.webhookURL)
 		return nil, fmt.Errorf("empty response body from webhook")
@@ -147,7 +143,6 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	// Validate response format - messageId must be provided by webhook
 	if webhookResp.MessageID == "" {
 		logger.Error("Empty messageId in webhook response", "url", c.webhookURL, "body", string(body))
 		return nil, fmt.Errorf("messageId is required in webhook response but was empty")
