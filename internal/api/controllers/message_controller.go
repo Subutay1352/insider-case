@@ -29,9 +29,11 @@ func NewMessageController(service *message.Service, msgConfig *config.MessageCon
 // @Tags         messages
 // @Accept       json
 // @Produce      json
+// @Security     ApiKeyAuth
 // @Param        limit   query     int     false  "Limit (default: 10)"  default(10)
 // @Param        offset  query     int     false  "Offset (default: 0)"  default(0)
 // @Success      200     {object}  map[string]interface{}  "Sent messages with pagination info"
+// @Failure      401     {object}  map[string]interface{}  "Unauthorized"
 // @Failure      500     {object}  map[string]interface{}  "Internal server error"
 // @Router       /api/v1/messages/sent [get]
 func (c *MessageController) GetSentMessages(ctx *gin.Context) {

@@ -25,7 +25,9 @@ func NewSenderController(scheduler *message.Scheduler) *SenderController {
 // @Tags         sender
 // @Accept       json
 // @Produce      json
+// @Security     ApiKeyAuth
 // @Success      200  {object}  map[string]interface{}  "Scheduler started successfully"
+// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
 // @Failure      400  {object}  map[string]interface{}  "Scheduler is already running"
 // @Failure      500  {object}  map[string]interface{}  "Internal server error"
 // @Router       /api/v1/sender/start [post]
@@ -49,7 +51,9 @@ func (c *SenderController) Start(ctx *gin.Context) {
 // @Tags         sender
 // @Accept       json
 // @Produce      json
+// @Security     ApiKeyAuth
 // @Success      200  {object}  map[string]interface{}  "Scheduler stopped successfully"
+// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
 // @Failure      400  {object}  map[string]interface{}  "Scheduler is not running"
 // @Failure      500  {object}  map[string]interface{}  "Internal server error"
 // @Router       /api/v1/sender/stop [post]
@@ -73,7 +77,9 @@ func (c *SenderController) Stop(ctx *gin.Context) {
 // @Tags         sender
 // @Accept       json
 // @Produce      json
+// @Security     ApiKeyAuth
 // @Success      200  {object}  map[string]interface{}  "Scheduler status with is_running field"
+// @Failure      401  {object}  map[string]interface{}  "Unauthorized"
 // @Router       /api/v1/sender/status [get]
 func (c *SenderController) Status(ctx *gin.Context) {
 	response.OK(ctx, "Scheduler status retrieved", gin.H{

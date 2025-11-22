@@ -13,7 +13,7 @@ lint:
 	golangci-lint run
 
 swagger:
-	swag init -g cmd/app/main.go -o docs
+	~/go/bin/swag init -g cmd/app/main.go -o docs
 
 docker:
 	docker build -t insider-case .
