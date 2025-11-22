@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"insider-case/internal/config"
 	"insider-case/internal/domain/message"
-	"insider-case/internal/pkg/logger"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,29 +60,7 @@ func (m *MockWebhookClient) SendMessage(ctx context.Context, req *message.Webhoo
 	return &message.WebhookResponse{Message: "Accepted", MessageID: "test-id"}, nil
 }
 
-func setupMessageController() (*MessageController, *gin.Engine) {
-	gin.SetMode(gin.TestMode)
-	logger.Init("local")
-
-	mockRepo := &MockRepository{}
-	mockWebhook := &MockWebhookClient{}
-	service := message.NewService(mockRepo, nil, mockWebhook, 2, 1000, 3, 3*time.Second)
-	msgConfig := &config.MessageConfig{
-		MaxLength:     1000,
-		DefaultLimit:  10,
-		DefaultOffset: 0,
-	}
-	controller := NewMessageController(service, msgConfig)
-
-	router := gin.New()
-	router.GET("/messages/sent", controller.GetSentMessages)
-
-	return controller, router
-}
-
 func TestMessageController_GetSentMessages(t *testing.T) {
-	controller, router := setupMessageController()
-
 	mockMessages := []*message.Message{
 		{
 			ID:        1,
@@ -112,8 +89,8 @@ func TestMessageController_GetSentMessages(t *testing.T) {
 		DefaultLimit:  10,
 		DefaultOffset: 0,
 	}
-	controller = NewMessageController(service, msgConfig)
-	router = gin.New()
+	controller := NewMessageController(service, msgConfig)
+	router := gin.New()
 	router.GET("/messages/sent", controller.GetSentMessages)
 
 	req := httptest.NewRequest("GET", "/messages/sent?limit=10&offset=0", nil)

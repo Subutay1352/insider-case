@@ -9,12 +9,10 @@ import (
 	gormLogger "gorm.io/gorm/logger"
 )
 
-// Connector defines the interface for database connection
 type Connector interface {
 	Connect() (*gorm.DB, error)
 }
 
-// ConnectDB initializes the database connection (without migrations)
 func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
 	connector := NewConnector(&cfg.Database)
 
@@ -43,7 +41,6 @@ func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-// InitDB initializes the database connection and runs migrations
 func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	db, err := ConnectDB(cfg)
 	if err != nil {
@@ -58,7 +55,6 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-// NewConnector creates a database connector based on type
 func NewConnector(dbCfg *config.DatabaseConfig) Connector {
 	dbType := dbCfg.Type
 	if dbType == "" {

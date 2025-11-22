@@ -102,7 +102,7 @@ func LoadEnvFile() error {
 func Load() *Config {
 	// Load .env file if ENV is local
 	if os.Getenv("ENV") == "local" {
-		LoadEnvFile()
+		_ = LoadEnvFile()
 	}
 	return &Config{
 		Env: getEnv("ENV", "production"),

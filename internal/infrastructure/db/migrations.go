@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// RunMigrations runs database migrations
 func RunMigrations(db *gorm.DB) error {
 	logger.Info("Running database migrations...")
 

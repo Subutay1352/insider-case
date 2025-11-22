@@ -88,7 +88,7 @@ func TestSenderController_Start_AlreadyRunning(t *testing.T) {
 	controller, router := setupSenderController()
 
 	// Start scheduler first
-	controller.scheduler.Start()
+	_ = controller.scheduler.Start()
 
 	req := httptest.NewRequest("POST", "/sender/start", nil)
 	w := httptest.NewRecorder()
@@ -103,7 +103,7 @@ func TestSenderController_Stop(t *testing.T) {
 	controller, router := setupSenderController()
 
 	// Start scheduler first
-	controller.scheduler.Start()
+	_ = controller.scheduler.Start()
 
 	req := httptest.NewRequest("POST", "/sender/stop", nil)
 	w := httptest.NewRecorder()
@@ -134,7 +134,7 @@ func TestSenderController_Status(t *testing.T) {
 	controller, router := setupSenderController()
 
 	// Start scheduler first
-	controller.scheduler.Start()
+	_ = controller.scheduler.Start()
 
 	req := httptest.NewRequest("GET", "/sender/status", nil)
 	w := httptest.NewRecorder()

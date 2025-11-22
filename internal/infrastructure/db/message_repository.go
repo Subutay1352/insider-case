@@ -7,22 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// Repository implements message.Repository using GORM
 type Repository struct {
 	db *gorm.DB
 }
 
-// NewRepository creates a new Repository based on database type
 func NewRepository(db *gorm.DB, dbType string) message.Repository {
 	return &Repository{db: db}
 }
 
-// NewPostgresRepository creates a new Repository
 func NewPostgresRepository(db *gorm.DB) message.Repository {
 	return &Repository{db: db}
 }
 
-// GetUnsentMessages retrieves unsent messages (status = queued OR failed with retry_count < maxRetryAttempts)
 func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
 	var messages []*message.Message
 	err := r.db.WithContext(ctx).
@@ -36,7 +32,6 @@ func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetryA
 	return messages, err
 }
 
-// UpdateMessageStatus updates the status of a message
 func (r *Repository) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string) error {
 	return r.db.WithContext(ctx).
 		Model(&message.Message{}).
@@ -47,7 +42,6 @@ func (r *Repository) UpdateMessageStatus(ctx context.Context, id uint, status me
 		}).Error
 }
 
-// UpdateMessageStatusOnly updates only the status without changing messageID
 func (r *Repository) UpdateMessageStatusOnly(ctx context.Context, id uint, status message.MessageStatus) error {
 	return r.db.WithContext(ctx).
 		Model(&message.Message{}).
@@ -55,7 +49,6 @@ func (r *Repository) UpdateMessageStatusOnly(ctx context.Context, id uint, statu
 		Update("status", status).Error
 }
 
-// UpdateMessageStatusAndRetry updates both status and retry_count
 func (r *Repository) UpdateMessageStatusAndRetry(ctx context.Context, id uint, status message.MessageStatus, retryCount int) error {
 	return r.db.WithContext(ctx).
 		Model(&message.Message{}).
@@ -66,7 +59,6 @@ func (r *Repository) UpdateMessageStatusAndRetry(ctx context.Context, id uint, s
 		}).Error
 }
 
-// GetSentMessages retrieves all sent messages with pagination
 func (r *Repository) GetSentMessages(ctx context.Context, limit, offset int) ([]*message.Message, error) {
 	var messages []*message.Message
 	err := r.db.WithContext(ctx).
@@ -78,7 +70,6 @@ func (r *Repository) GetSentMessages(ctx context.Context, limit, offset int) ([]
 	return messages, err
 }
 
-// UpdateMessageRetry updates retry information for a failed message
 func (r *Repository) UpdateMessageRetry(ctx context.Context, id uint, retryCount int) error {
 	return r.db.WithContext(ctx).
 		Model(&message.Message{}).
@@ -89,7 +80,6 @@ func (r *Repository) UpdateMessageRetry(ctx context.Context, id uint, retryCount
 		}).Error
 }
 
-// CountSentMessages returns the total count of sent messages
 func (r *Repository) CountSentMessages(ctx context.Context) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).

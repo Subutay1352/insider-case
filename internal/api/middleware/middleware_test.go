@@ -79,7 +79,7 @@ func TestErrorHandlingMiddleware(t *testing.T) {
 
 	assert.Equal(t, 500, w.Code)
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Equal(t, "Internal server error", response["error"])
 
 	// Test normal request
@@ -124,7 +124,7 @@ func TestAllMiddlewaresTogether(t *testing.T) {
 	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
 	var response map[string]interface{}
-	json.Unmarshal(w.Body.Bytes(), &response)
+	_ = json.Unmarshal(w.Body.Bytes(), &response)
 	assert.Equal(t, "ok", response["message"])
 }
 

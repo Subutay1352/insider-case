@@ -112,7 +112,9 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 		logger.Error("Failed to send webhook request", "error", err, "url", c.webhookURL)
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
