@@ -1,0 +1,4 @@
+# Insider Case
+
+Project initialized.
+
