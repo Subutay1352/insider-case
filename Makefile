@@ -1,4 +1,4 @@
-.PHONY: build run test lint docker clean
+.PHONY: build run test lint docker clean swagger
 
 build:
 	go build -o out/app cmd/app/main.go
@@ -11,6 +11,9 @@ test:
 
 lint:
 	golangci-lint run
+
+swagger:
+	swag init -g cmd/app/main.go -o docs
 
 docker:
 	docker build -t insider-case .

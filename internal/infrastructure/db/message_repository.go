@@ -79,3 +79,4 @@ func (r *Repository) CountSentMessages(ctx context.Context) (int64, error) {
 		Count(&count).Error
 	return count, err
 }
+

@@ -10,13 +10,14 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	Env       string
-	Server    ServerConfig
-	Database  DatabaseConfig
-	Redis     RedisConfig
-	Webhook   WebhookConfig
-	Scheduler SchedulerConfig
-	Message   MessageConfig
+	Env         string
+	Server      ServerConfig
+	Database    DatabaseConfig
+	Redis       RedisConfig
+	Webhook     WebhookConfig
+	Scheduler   SchedulerConfig
+	Message     MessageConfig
+	AccessToken string // X-Access-Token header value for API authentication
 }
 
 // ServerConfig holds server configuration
@@ -155,6 +156,7 @@ func Load() *Config {
 			DefaultLimit:  10,
 			DefaultOffset: 0,
 		},
+		AccessToken: getEnv("ACCESS_TOKEN", "your-access-token"),
 	}
 }
 
