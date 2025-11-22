@@ -32,10 +32,10 @@ func NewWebhookClient(cfg *config.Config) message.WebhookClient {
 		client: &http.Client{
 			Timeout: cfg.Webhook.Timeout,
 		},
-	webhookURL:    cfg.Webhook.URL,
-	authKey:       cfg.Webhook.AuthKey,
-	retryAttempts: cfg.Webhook.MaxRetryAttempts,
-	retryDelay:    cfg.Webhook.RetryDelay,
+		webhookURL:    cfg.Webhook.URL,
+		authKey:       cfg.Webhook.AuthKey,
+		retryAttempts: cfg.Webhook.MaxRetryAttempts,
+		retryDelay:    cfg.Webhook.RetryDelay,
 	}
 }
 
