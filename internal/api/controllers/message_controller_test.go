@@ -20,11 +20,23 @@ type MockRepository struct {
 	CountSentMessagesFunc func(ctx context.Context) (int64, error)
 }
 
-func (m *MockRepository) GetUnsentMessages(ctx context.Context, limit int) ([]*message.Message, error) {
+func (m *MockRepository) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
 	return nil, nil
 }
 
-func (m *MockRepository) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string, sentAt *time.Time) error {
+func (m *MockRepository) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string) error {
+	return nil
+}
+
+func (m *MockRepository) UpdateMessageStatusOnly(ctx context.Context, id uint, status message.MessageStatus) error {
+	return nil
+}
+
+func (m *MockRepository) UpdateMessageStatusAndRetry(ctx context.Context, id uint, status message.MessageStatus, retryCount int) error {
+	return nil
+}
+
+func (m *MockRepository) UpdateMessageRetry(ctx context.Context, id uint, retryCount int) error {
 	return nil
 }
 

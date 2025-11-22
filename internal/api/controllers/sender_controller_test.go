@@ -13,20 +13,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// MockRepository and MockWebhookClient are defined in message_controller_test.go
-// We need to reference them here or define them again
 type mockRepo struct{}
 
-func (m *mockRepo) GetUnsentMessages(ctx context.Context, limit int) ([]*message.Message, error) {
+func (m *mockRepo) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
 	return nil, nil
 }
-func (m *mockRepo) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string, sentAt *time.Time) error {
+
+func (m *mockRepo) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string) error {
 	return nil
 }
+
+func (m *mockRepo) UpdateMessageStatusOnly(ctx context.Context, id uint, status message.MessageStatus) error {
+	return nil
+}
+
+func (m *mockRepo) UpdateMessageStatusAndRetry(ctx context.Context, id uint, status message.MessageStatus, retryCount int) error {
+	return nil
+}
+
+func (m *mockRepo) UpdateMessageRetry(ctx context.Context, id uint, retryCount int) error {
+	return nil
+}
+
 func (m *mockRepo) GetSentMessages(ctx context.Context, limit, offset int) ([]*message.Message, error) {
 	return nil, nil
 }
-func (m *mockRepo) CountSentMessages(ctx context.Context) (int64, error) { return 0, nil }
+
+func (m *mockRepo) CountSentMessages(ctx context.Context) (int64, error) {
+	return 0, nil
+}
 
 type mockWebhook struct{}
 

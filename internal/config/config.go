@@ -109,10 +109,10 @@ func Load() *Config {
 		Server: ServerConfig{
 			Port:            getEnv("SERVER_PORT", "8080"),
 			Host:            getEnv("SERVER_HOST", "0.0.0.0"),
-			ReadTimeout:     getEnvAsDuration("SERVER_READ_TIMEOUT", 10*time.Second),
-			WriteTimeout:    getEnvAsDuration("SERVER_WRITE_TIMEOUT", 10*time.Second),
-			IdleTimeout:     getEnvAsDuration("SERVER_IDLE_TIMEOUT", 60*time.Second),
-			ShutdownTimeout: getEnvAsDuration("SERVER_SHUTDOWN_TIMEOUT", 10*time.Second),
+			ReadTimeout:     10 * time.Second,
+			WriteTimeout:    10 * time.Second,
+			IdleTimeout:     60 * time.Second,
+			ShutdownTimeout: 10 * time.Second,
 		},
 		Database: DatabaseConfig{
 			Type:            getEnv("DB_TYPE", "postgres"),
@@ -121,11 +121,11 @@ func Load() *Config {
 			User:            getEnv("DB_USER", "postgres"),
 			Password:        getEnv("DB_PASSWORD", "postgres"),
 			Name:            getEnv("DB_NAME", "insider_case"),
-			Path:            getEnv("DB_PATH", "insider_case.db"),
-			MaxOpenConns:    getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
-			MaxIdleConns:    getEnvAsInt("DB_MAX_IDLE_CONNS", 5),
-			ConnMaxLifetime: getEnvAsDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute),
-			ConnMaxIdleTime: getEnvAsDuration("DB_CONN_MAX_IDLE_TIME", 10*time.Minute),
+			Path:            getEnv("DB_PATH", "insider_case.db"), // TODO: REMOVE THIS
+			MaxOpenConns:    25,
+			MaxIdleConns:    5,
+			ConnMaxLifetime: 5 * time.Minute,
+			ConnMaxIdleTime: 10 * time.Minute,
 			LogLevel:        getEnv("DB_LOG_LEVEL", "info"), // silent, error, warn, info
 		},
 		Redis: RedisConfig{
@@ -134,14 +134,14 @@ func Load() *Config {
 			Password:       getEnv("REDIS_PASSWORD", ""),
 			DB:             getEnvAsInt("REDIS_DB", 0),
 			TTL:            24 * time.Hour,
-			ConnectTimeout: getEnvAsDuration("REDIS_CONNECT_TIMEOUT", 5*time.Second),
+			ConnectTimeout: 5 * time.Second,
 		},
 		Webhook: WebhookConfig{
 			URL:              getEnv("WEBHOOK_URL", "https://webhook.site/your-unique-id"),
 			AuthKey:          getEnv("WEBHOOK_AUTH_KEY", "your-secret-key"),
 			Timeout:          getEnvAsDuration("WEBHOOK_TIMEOUT", 30*time.Second),
-			MaxRetryAttempts: 3, // Fixed value, not from environment
-			RetryDelay:       getEnvAsDuration("WEBHOOK_RETRY_DELAY", 1*time.Second),
+			MaxRetryAttempts: 3,
+			RetryDelay:       1 * time.Second,
 		},
 		Scheduler: SchedulerConfig{
 			Interval:          getEnvAsDuration("SCHEDULER_INTERVAL", 2*time.Minute),

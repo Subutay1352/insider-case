@@ -28,3 +28,6 @@ Thumbs.db
 # Documentation (project-specific)
 *.md
 
+# Generated Swagger docs
+docs/
+
