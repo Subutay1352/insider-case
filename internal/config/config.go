@@ -121,7 +121,7 @@ func Load() *Config {
 			User:            getEnv("DB_USER", "postgres"),
 			Password:        getEnv("DB_PASSWORD", "postgres"),
 			Name:            getEnv("DB_NAME", "insider_case"),
-			Path:            getEnv("DB_PATH", "insider_case.db"), // TODO: REMOVE THIS
+			Path:            getEnv("DB_PATH", "insider_case.db"), // Only used for SQLite
 			MaxOpenConns:    25,
 			MaxIdleConns:    5,
 			ConnMaxLifetime: 5 * time.Minute,

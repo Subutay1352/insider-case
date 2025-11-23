@@ -1,0 +1,36 @@
+package routes
+
+import (
+	"insider-case/internal/api/controllers"
+	"insider-case/internal/api/middleware"
+	"insider-case/internal/config"
+
+	"github.com/gin-gonic/gin"
+)
+
+// setupAPIRoutes configures API v1 routes
+func setupAPIRoutes(
+	router *gin.Engine,
+	senderController *controllers.SenderController,
+	messageController *controllers.MessageController,
+	cfg *config.Config,
+) {
+	v1 := router.Group("/api/v1")
+	// Apply authentication middleware to all API routes
+	v1.Use(middleware.AuthMiddleware(cfg.AccessToken))
+	{
+		// Sender endpoints
+		sender := v1.Group("/sender")
+		{
+			sender.POST("/start", senderController.Start)
+			sender.POST("/stop", senderController.Stop)
+			sender.GET("/status", senderController.Status)
+		}
+
+		// Message endpoints
+		messages := v1.Group("/messages")
+		{
+			messages.GET("/sent", messageController.GetSentMessages)
+		}
+	}
+}
