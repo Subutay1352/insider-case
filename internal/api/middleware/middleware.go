@@ -3,6 +3,7 @@ package middleware
 import (
 	"insider-case/internal/constants"
 	"insider-case/internal/pkg/logger"
+	"insider-case/internal/pkg/response"
 	"net/http"
 	"time"
 
@@ -35,7 +36,7 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				logger.Error("Panic recovered", "error", err)
-				c.JSON(500, gin.H{"error": "Internal server error"})
+				response.InternalServerError(c, response.ErrorCodeInternalServerError, "Internal server error", nil)
 				c.Abort()
 			}
 		}()
@@ -95,9 +96,7 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"user_agent", c.Request.UserAgent(),
 				"status_code", http.StatusUnauthorized,
 			)
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: " + constants.HeaderAccessToken + " header is required",
-			})
+			response.Unauthorized(c, response.ErrorCodeUnauthorizedMissingToken, constants.HeaderAccessToken+" header is required")
 			c.Abort()
 			return
 		}
@@ -109,11 +108,9 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"client_ip", c.ClientIP(),
 				"user_agent", c.Request.UserAgent(),
 				"status_code", http.StatusUnauthorized,
-				"token_provided", token[:min(len(token), 10)]+"...", // Log first 10 chars for security
+				"token_provided", token[:min(len(token), 10)]+"...",
 			)
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: Invalid " + constants.HeaderAccessToken,
-			})
+			response.Unauthorized(c, response.ErrorCodeUnauthorizedInvalidToken, "Invalid "+constants.HeaderAccessToken)
 			c.Abort()
 			return
 		}

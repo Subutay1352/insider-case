@@ -33,16 +33,16 @@ func NewSenderController(scheduler *message.Scheduler) *SenderController {
 // @Router       /api/v1/sender/startScheduler [post]
 func (c *SenderController) Start(ctx *gin.Context) {
 	if c.scheduler.IsRunning() {
-		response.BadRequest(ctx, "Scheduler is already running")
+		response.BadRequest(ctx, response.ErrorCodeSchedulerAlreadyRunning, "Scheduler is already running")
 		return
 	}
 
 	if err := c.scheduler.Start(); err != nil {
-		response.InternalServerError(ctx, "Failed to start scheduler", err)
+		response.InternalServerError(ctx, response.ErrorCodeSchedulerStartFailed, "Failed to start scheduler", err)
 		return
 	}
 
-	response.OK(ctx, "Scheduler started successfully", nil)
+	response.OK(ctx, response.SuccessCodeSchedulerStarted, "Scheduler started successfully", nil)
 }
 
 // Stop stops the automatic message sending scheduler
@@ -59,16 +59,16 @@ func (c *SenderController) Start(ctx *gin.Context) {
 // @Router       /api/v1/sender/stopScheduler [post]
 func (c *SenderController) Stop(ctx *gin.Context) {
 	if !c.scheduler.IsRunning() {
-		response.BadRequest(ctx, "Scheduler is not running")
+		response.BadRequest(ctx, response.ErrorCodeSchedulerNotRunning, "Scheduler is not running")
 		return
 	}
 
 	if err := c.scheduler.Stop(); err != nil {
-		response.InternalServerError(ctx, "Failed to stop scheduler", err)
+		response.InternalServerError(ctx, response.ErrorCodeSchedulerStopFailed, "Failed to stop scheduler", err)
 		return
 	}
 
-	response.OK(ctx, "Scheduler stopped successfully", nil)
+	response.OK(ctx, response.SuccessCodeSchedulerStopped, "Scheduler stopped successfully", nil)
 }
 
 // Status returns the current status of the scheduler
@@ -82,7 +82,7 @@ func (c *SenderController) Stop(ctx *gin.Context) {
 // @Failure      401  {object}  map[string]interface{}  "Unauthorized"
 // @Router       /api/v1/sender/statusScheduler [get]
 func (c *SenderController) Status(ctx *gin.Context) {
-	response.OK(ctx, "Scheduler status retrieved", gin.H{
+	response.OK(ctx, response.SuccessCodeSchedulerStatusRetrieved, "Scheduler status retrieved", gin.H{
 		"is_running": c.scheduler.IsRunning(),
 	})
 }

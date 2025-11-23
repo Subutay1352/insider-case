@@ -52,11 +52,11 @@ func (c *MessageController) GetSentMessages(ctx *gin.Context) {
 
 	messages, total, err := c.service.GetSentMessages(ctx.Request.Context(), limit, offset)
 	if err != nil {
-		response.InternalServerError(ctx, "Failed to retrieve sent messages", err)
+		response.InternalServerError(ctx, response.ErrorCodeFailedToRetrieveMessages, "Failed to retrieve sent messages", err)
 		return
 	}
 
-	response.OK(ctx, "Sent messages retrieved successfully", gin.H{
+	response.OK(ctx, response.SuccessCodeMessagesRetrieved, "Sent messages retrieved successfully", gin.H{
 		"messages": messages,
 		"total":    total,
 		"limit":    limit,
