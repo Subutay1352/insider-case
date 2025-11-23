@@ -5,8 +5,9 @@ const (
 	APIV1BasePath = "/api/v1"
 
 	// System Routes
-	HealthPath  = "/health"
-	SwaggerPath = "/swagger/*any"
+	HealthPath       = "/health"
+	HealthPathSystem = "/health/system"
+	SwaggerPath      = "/swagger/*any"
 
 	// Sender Routes
 	SenderBasePath      = "/sender"

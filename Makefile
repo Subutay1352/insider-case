@@ -19,3 +19,6 @@ docker:
 clean:
 	rm -rf out/
 
+start:
+	./start.sh
+

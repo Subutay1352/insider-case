@@ -12,6 +12,8 @@ import (
 	"insider-case/internal/pkg/logger"
 	"net/http"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 type App struct {
@@ -31,8 +33,10 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	// Init Redis
 	var cacheRepo message.CacheRepository
-	if redisClient, err := redisInfra.InitRedis(cfg); err == nil {
-		cacheRepo = redisInfra.NewCacheRepository(redisClient, cfg.Redis.TTL)
+	var redisClient *redis.Client
+	if rc, err := redisInfra.InitRedis(cfg); err == nil {
+		redisClient = rc
+		cacheRepo = redisInfra.NewCacheRepository(rc, cfg.Redis.TTL)
 		logger.Info("Redis connection verified")
 	} else {
 		logger.Warn("Failed to initialize Redis, continuing without cache", "error", err)
@@ -62,7 +66,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}
 
 	// Setup routes and start server
-	router := routes.SetupRoutes(messageService, messageScheduler, cfg)
+	router := routes.SetupRoutes(messageService, messageScheduler, cfg, database, redisClient)
 	srv := server.Start(router, &cfg.Server)
 
 	return &App{

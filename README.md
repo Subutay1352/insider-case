@@ -49,6 +49,11 @@ Health check:
 GET /health
 ```
 
+System health check (DB + Redis):
+```
+GET /health/system
+```
+
 Swagger documentation:
 ```
 GET /swagger/index.html
@@ -70,7 +75,20 @@ GET  /api/v1/messages/sent?limit=10&offset=0
 - `make lint` - Run linter
 - `make swagger` - Generate Swagger docs
 - `make docker` - Build Docker image
+- `make start` - Build, create Docker image and start container
 - `make clean` - Clean build artifacts
+
+## Quick Start
+
+Build, create Docker image and start container:
+```bash
+make start
+```
+
+Or use the script directly:
+```bash
+./start.sh
+```
 
 ## Docker
 

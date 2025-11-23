@@ -14,11 +14,17 @@ type Repository struct {
 }
 
 func NewRepository(db *gorm.DB, dbType string) message.Repository {
-	return &Repository{db: db, dbType: dbType}
+	return &Repository{
+		db:     db,
+		dbType: dbType,
+	}
 }
 
 func NewPostgresRepository(db *gorm.DB) message.Repository {
-	return &Repository{db: db, dbType: DBTypePostgres}
+	return &Repository{
+		db:     db,
+		dbType: DBTypePostgres,
+	}
 }
 
 func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
