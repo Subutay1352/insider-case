@@ -16,6 +16,7 @@ type Scheduler struct {
 	cancel            context.CancelFunc
 	mu                sync.RWMutex
 	isRunning         bool
+	processingMu      sync.Mutex // Prevents concurrent execution of sendMessages
 	interval          time.Duration
 	processingTimeout time.Duration
 }
@@ -120,8 +121,13 @@ func (s *Scheduler) run() {
 	}
 }
 
-// sendMessages sends queued messages
 func (s *Scheduler) sendMessages() {
+	if !s.processingMu.TryLock() {
+		logger.Warn("Skipping message processing - previous batch still running")
+		return
+	}
+	defer s.processingMu.Unlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.processingTimeout)
 	defer cancel()
 

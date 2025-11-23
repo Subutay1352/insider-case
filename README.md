@@ -26,7 +26,7 @@ Create `.env` file for local development:
 
 ```bash
 ENV=local
-DB_TYPE=sqlite                    # or postgres
+DB_TYPE=postgres                    # or sqlite
 DB_PATH=insider_case.db          # for sqlite
 DB_HOST=localhost
 DB_PORT=5432
