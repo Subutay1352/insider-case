@@ -11,16 +11,16 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/app
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates curl
 
-#  non-root user for security
-RUN addgroup -g 1000 appuser && \
+RUN apk --no-cache add ca-certificates curl && \
+    addgroup -g 1000 appuser && \
     adduser -D -u 1000 -G appuser appuser
 
 
 WORKDIR /app
 
 COPY --from=builder --chmod=755 /app/main /app/main
+COPY --from=builder /app/migrations /app/migrations
 
 # Change ownership of /app directory and binary
 RUN chown -R appuser:appuser /app

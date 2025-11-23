@@ -28,36 +28,48 @@ func healthCheck(database *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
 		status := gin.H{}
 
 		// Check database connection
-		if database != nil {
-			sqlDB, err := database.DB()
-			if err == nil {
-				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-				defer cancel()
-				if err := sqlDB.PingContext(ctx); err == nil {
-					status["db"] = "ok"
-				} else {
-					status["db"] = "error"
-				}
-			} else {
-				status["db"] = "error"
-			}
-		} else {
-			status["db"] = "not_configured"
-		}
+		status["db"] = checkDatabaseHealth(database)
 
 		// Check Redis connection
-		if redisClient != nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			defer cancel()
-			if err := redisClient.Ping(ctx).Err(); err == nil {
-				status["redis"] = "ok"
-			} else {
-				status["redis"] = "error"
-			}
-		} else {
-			status["redis"] = "not_configured"
-		}
+		status["redis"] = checkRedisHealth(redisClient)
 
 		c.JSON(200, status)
 	}
+}
+
+// checkDatabaseHealth checks database connection health
+func checkDatabaseHealth(database *gorm.DB) string {
+	if database == nil {
+		return "not_configured"
+	}
+
+	sqlDB, err := database.DB()
+	if err != nil {
+		return "error"
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return "error"
+	}
+
+	return "ok"
+}
+
+// checkRedisHealth checks Redis connection health
+func checkRedisHealth(redisClient *redis.Client) string {
+	if redisClient == nil {
+		return "not_configured"
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		return "error"
+	}
+
+	return "ok"
 }

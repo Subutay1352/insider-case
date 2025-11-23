@@ -52,7 +52,12 @@ func (s *Service) SendPendingMessages(ctx context.Context) error {
 
 	for _, msg := range messages {
 		if ctx.Err() != nil {
-			s.repo.UpdateMessageStatusOnly(ctx, msg.ID, MessageStatusQueued)
+			if err := s.repo.UpdateMessageStatusOnly(ctx, msg.ID, MessageStatusQueued); err != nil {
+				logger.Warn("Failed to revert message status to queued",
+					"message_id", msg.ID,
+					"error", err,
+				)
+			}
 			continue
 		}
 

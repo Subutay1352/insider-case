@@ -15,12 +15,15 @@ type Repository struct {
 }
 
 func NewRepository(db *gorm.DB, dbType string) message.Repository {
-	var executor repository.QueryExecutor
+	if dbType == "" {
+		dbType = constants.DBTypePostgres
+	}
 
-	switch dbType {
-	case constants.DBTypePostgres:
+	var executor repository.QueryExecutor
+	if dbType == constants.DBTypePostgres {
 		executor = repository.NewPostgresExecutor()
-	default:
+	} else {
+		// for now, default to PostgreSQL
 		executor = repository.NewPostgresExecutor()
 	}
 
