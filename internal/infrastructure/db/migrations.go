@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"insider-case/internal/domain/message"
 	"insider-case/internal/pkg/logger"
@@ -28,24 +29,19 @@ func RunMigrations(db *gorm.DB) error {
 }
 
 func runSQLMigrations(db *gorm.DB) error {
-	migrationDirs := []string{
-		"migrations",
-		"./migrations",
-		"/app/migrations",
-		filepath.Join(".", "migrations"),
-	}
+	migrationDirs := []string{"migrations", "./migrations", "/app/migrations", filepath.Join(".", "migrations")}
 
 	var migrationsDir string
 	for _, dir := range migrationDirs {
 		if info, err := os.Stat(dir); err == nil && info.IsDir() {
 			migrationsDir = dir
-			logger.Info("Found migrations directory", "path", migrationsDir)
+			logger.Info("Found migrations directory", "path", dir)
 			break
 		}
 	}
 
 	if migrationsDir == "" {
-		logger.Warn("Migrations directory not found, using AutoMigrate only", "tried_paths", migrationDirs)
+		logger.Warn("Migrations directory not found, using AutoMigrate only")
 		return nil
 	}
 
@@ -75,39 +71,44 @@ func runSQLMigrations(db *gorm.DB) error {
 	}
 
 	for _, fileName := range sqlFiles {
-		migrationPath := filepath.Join(migrationsDir, fileName)
+		if err := executeMigrationFile(sqlDB, migrationsDir, fileName); err != nil {
+			return err
+		}
+	}
 
-		sqlContent, err := os.ReadFile(migrationPath)
-		if err != nil {
-			logger.Warn("Could not read migration file", "file", migrationPath, "error", err)
+	return nil
+}
+
+func executeMigrationFile(sqlDB *sql.DB, migrationsDir, fileName string) error {
+	migrationPath := filepath.Join(migrationsDir, fileName)
+	sqlContent, err := os.ReadFile(migrationPath)
+	if err != nil {
+		logger.Warn("Could not read migration file", "file", migrationPath, "error", err)
+		return nil
+	}
+
+	logger.Info("Executing SQL migration", "file", fileName)
+
+	statements := splitSQLStatements(string(sqlContent))
+	for i, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
 			continue
 		}
 
-		logger.Info("Executing SQL migration", "file", fileName)
-
-		statements := splitSQLStatements(string(sqlContent))
-		for i, stmt := range statements {
-			stmt = strings.TrimSpace(stmt)
-			if stmt == "" {
+		if _, err := sqlDB.Exec(stmt); err != nil {
+			errMsg := strings.ToLower(err.Error())
+			if strings.Contains(errMsg, "already exists") || strings.Contains(errMsg, "duplicate") ||
+				(strings.Contains(errMsg, "relation") && strings.Contains(errMsg, "already exists")) {
+				logger.Info("Statement already applied, skipping", "file", fileName, "statement", i+1)
 				continue
 			}
-
-			if _, err := sqlDB.Exec(stmt); err != nil {
-				errMsg := strings.ToLower(err.Error())
-				if strings.Contains(errMsg, "already exists") ||
-					strings.Contains(errMsg, "duplicate") ||
-					(strings.Contains(errMsg, "relation") && strings.Contains(errMsg, "already exists")) {
-					logger.Info("Statement already applied, skipping", "file", fileName, "statement", i+1)
-					continue
-				}
-				logger.Warn("SQL migration execution warning", "file", fileName, "statement", i+1, "error", err)
-				return fmt.Errorf("failed to execute migration %s (statement %d): %w", fileName, i+1, err)
-			}
+			logger.Warn("SQL migration execution warning", "file", fileName, "statement", i+1, "error", err)
+			return fmt.Errorf("failed to execute migration %s (statement %d): %w", fileName, i+1, err)
 		}
-
-		logger.Info("SQL migration executed successfully", "file", fileName)
 	}
 
+	logger.Info("SQL migration executed successfully", "file", fileName)
 	return nil
 }
 

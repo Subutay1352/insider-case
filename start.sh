@@ -67,7 +67,7 @@ docker run -d \
   -e WEBHOOK_URL=${WEBHOOK_URL:-https://webhook.site/your-unique-id} \
   -e WEBHOOK_AUTH_KEY=${WEBHOOK_AUTH_KEY:-your-secret-key} \
   -e ACCESS_TOKEN=${ACCESS_TOKEN:-your-access-token} \
-  -e SCHEDULER_INTERVAL=${SCHEDULER_INTERVAL:-20s} \
+  -e SCHEDULER_INTERVAL=${SCHEDULER_INTERVAL:-2m} \
   -e SCHEDULER_AUTO_START=${SCHEDULER_AUTO_START:-true} \
   insider-case || exit 1
 

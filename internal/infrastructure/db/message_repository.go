@@ -5,6 +5,7 @@ import (
 	"insider-case/internal/constants"
 	"insider-case/internal/domain/message"
 	"insider-case/internal/infrastructure/db/repository"
+	"insider-case/internal/pkg/logger"
 
 	"gorm.io/gorm"
 )
@@ -19,24 +20,19 @@ func NewRepository(db *gorm.DB, dbType string) message.Repository {
 		dbType = constants.DBTypePostgres
 	}
 
-	var executor repository.QueryExecutor
-	if dbType == constants.DBTypePostgres {
-		executor = repository.NewPostgresExecutor()
-	} else {
-		// for now, default to PostgreSQL
-		executor = repository.NewPostgresExecutor()
-	}
-
 	return &Repository{
 		db:            db,
-		queryExecutor: executor,
+		queryExecutor: newQueryExecutor(dbType),
 	}
 }
 
-func NewPostgresRepository(db *gorm.DB) message.Repository {
-	return &Repository{
-		db:            db,
-		queryExecutor: repository.NewPostgresExecutor(),
+func newQueryExecutor(dbType string) repository.QueryExecutor {
+	switch dbType {
+	case constants.DBTypePostgres:
+		return repository.NewPostgresExecutor()
+	default:
+		logger.Warn("Unsupported database type, falling back to PostgreSQL", "db_type", dbType)
+		return repository.NewPostgresExecutor()
 	}
 }
 
