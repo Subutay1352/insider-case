@@ -22,9 +22,9 @@ func setupAPIRoutes(
 		// Sender endpoints
 		sender := v1.Group("/sender")
 		{
-			sender.POST("/start", senderController.Start)
-			sender.POST("/stop", senderController.Stop)
-			sender.GET("/status", senderController.Status)
+			sender.POST("/startScheduler", senderController.Start)
+			sender.POST("/stopScheduler", senderController.Stop)
+			sender.GET("/statusScheduler", senderController.Status)
 		}
 
 		// Message endpoints

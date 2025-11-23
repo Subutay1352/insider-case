@@ -56,9 +56,9 @@ GET /swagger/index.html
 
 API v1 endpoints (requires `x-access-token` header):
 ```
-POST /api/v1/sender/start
-POST /api/v1/sender/stop
-GET  /api/v1/sender/status
+POST /api/v1/sender/startScheduler
+POST /api/v1/sender/stopScheduler
+GET  /api/v1/sender/statusScheduler
 GET  /api/v1/messages/sent?limit=10&offset=0
 ```
 
