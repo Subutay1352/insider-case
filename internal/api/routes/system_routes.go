@@ -2,6 +2,7 @@ package routes
 
 import (
 	_ "insider-case/docs" // Swagger documentation
+	"insider-case/internal/api"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -11,10 +12,10 @@ import (
 // setupSystemRoutes configures system-level routes (health, swagger)
 func setupSystemRoutes(router *gin.Engine) {
 	// Health check endpoint
-	router.GET("/health", healthCheck)
+	router.GET(api.HealthPath, healthCheck)
 
 	// Swagger UI documentation
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET(api.SwaggerPath, ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 // healthCheck handles health check requests

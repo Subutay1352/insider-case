@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"insider-case/internal/api"
 	"insider-case/internal/config"
 	"insider-case/internal/domain/message"
 	"insider-case/internal/pkg/logger"
@@ -104,7 +105,7 @@ func (c *WebhookClient) sendRequest(ctx context.Context, req *message.WebhookReq
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	if c.authKey != "" {
-		httpReq.Header.Set("'x-ins-auth-key", c.authKey)
+		httpReq.Header.Set(api.HeaderAuthKey, c.authKey)
 	}
 
 	resp, err := c.client.Do(httpReq)

@@ -17,7 +17,7 @@ type Config struct {
 	Webhook     WebhookConfig
 	Scheduler   SchedulerConfig
 	Message     MessageConfig
-	AccessToken string // X-Access-Token header value for API authentication
+	AccessToken string
 }
 
 // ServerConfig holds server configuration

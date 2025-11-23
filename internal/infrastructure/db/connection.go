@@ -58,13 +58,13 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 func NewConnector(dbCfg *config.DatabaseConfig) Connector {
 	dbType := dbCfg.Type
 	if dbType == "" {
-		dbType = "postgres"
+		dbType = DBTypePostgres
 	}
 
 	switch dbType {
-	case "postgres":
+	case DBTypePostgres:
 		return NewPostgresConnector(dbCfg)
-	case "sqlite":
+	case DBTypeSQLite:
 		return NewSQLiteConnector(dbCfg)
 	default:
 		return &unsupportedConnector{dbType: dbType}

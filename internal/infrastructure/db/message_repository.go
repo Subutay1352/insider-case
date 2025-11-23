@@ -8,11 +8,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const (
-	DBTypePostgres = "postgres"
-	DBTypeSQLite   = "sqlite"
-)
-
 type Repository struct {
 	db     *gorm.DB
 	dbType string

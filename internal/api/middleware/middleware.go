@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"insider-case/internal/api"
 	"insider-case/internal/pkg/logger"
 	"net/http"
 	"time"
@@ -8,17 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// LoggingMiddleware logs HTTP requests
 func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		method := c.Request.Method
 		path := c.Request.URL.Path
 
-		// Process request
 		c.Next()
 
-		// Calculate latency
 		duration := time.Since(start)
 		statusCode := c.Writer.Status()
 
@@ -32,7 +30,6 @@ func LoggingMiddleware() gin.HandlerFunc {
 	}
 }
 
-// ErrorHandlingMiddleware handles panics and errors
 func ErrorHandlingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
@@ -46,12 +43,11 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 	}
 }
 
-// CORSMiddleware adds CORS headers
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Access-Token")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, "+api.HeaderAccessToken)
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(200)
@@ -62,7 +58,6 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// JSONContentTypeMiddleware sets JSON content type
 func JSONContentTypeMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Content-Type", "application/json")
@@ -70,37 +65,30 @@ func JSONContentTypeMiddleware() gin.HandlerFunc {
 	}
 }
 
-// AuthMiddleware validates X-Access-Token header
 func AuthMiddleware(accessToken string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Allow OPTIONS requests for CORS preflight
 		if c.Request.Method == "OPTIONS" {
 			c.Next()
 			return
 		}
 
-		// Warn if access token is not configured
 		if accessToken == "" {
 			logger.Warn("Access token is not configured, all requests will be rejected")
 		}
 
-		// Get token from header (case-insensitive)
-		// HTTP headers are case-insensitive, but we check multiple variations for compatibility
-		token := c.GetHeader("X-Access-Token")
+		token := c.GetHeader(api.HeaderAccessToken)
 		if token == "" {
 			token = c.GetHeader("x-access-token")
 		}
 		if token == "" {
 			token = c.GetHeader("X-ACCESS-TOKEN")
 		}
-		// Also check directly from request headers (Request.Header.Get is case-insensitive)
 		if token == "" {
-			token = c.Request.Header.Get("X-Access-Token")
+			token = c.Request.Header.Get(api.HeaderAccessToken)
 		}
 
-		// If no token provided or token doesn't match, return 401
 		if token == "" {
-			logger.Warn("Unauthorized access attempt - missing X-Access-Token",
+			logger.Warn("Unauthorized access attempt - missing "+api.HeaderAccessToken,
 				"path", c.Request.URL.Path,
 				"method", c.Request.Method,
 				"client_ip", c.ClientIP(),
@@ -108,15 +96,14 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"status_code", http.StatusUnauthorized,
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: X-Access-Token header is required",
+				"error": "Unauthorized: " + api.HeaderAccessToken + " header is required",
 			})
 			c.Abort()
 			return
 		}
 
-		// Check if token matches
 		if token != accessToken {
-			logger.Warn("Unauthorized access attempt - invalid X-Access-Token",
+			logger.Warn("Unauthorized access attempt - invalid "+api.HeaderAccessToken,
 				"path", c.Request.URL.Path,
 				"method", c.Request.Method,
 				"client_ip", c.ClientIP(),
@@ -125,13 +112,12 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"token_provided", token[:min(len(token), 10)]+"...", // Log first 10 chars for security
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: Invalid X-Access-Token",
+				"error": "Unauthorized: Invalid " + api.HeaderAccessToken,
 			})
 			c.Abort()
 			return
 		}
 
-		// Token is valid, continue
 		c.Next()
 	}
 }

@@ -103,7 +103,7 @@ docker run -d -p 8080:8080 \
 - Go 1.21
 - Gin
 - GORM (PostgreSQL/SQLite)
-- Redis (optional)
+- Redis 
 - Docker
 
 ## Code Quality
