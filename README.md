@@ -26,8 +26,7 @@ Create `.env` file for local development:
 
 ```bash
 ENV=local
-DB_TYPE=postgres                    # or sqlite
-DB_PATH=insider_case.db          # for sqlite
+DB_TYPE=postgres
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
@@ -92,14 +91,6 @@ Build:
 make docker
 ```
 
-Run with SQLite:
-```bash
-docker run -d -p 8080:8080 \
-  -e DB_TYPE=sqlite \
-  -e DB_PATH=/app/data.db \
-  insider-case
-```
-
 Run with PostgreSQL:
 ```bash
 docker run -d -p 8080:8080 \
@@ -115,7 +106,7 @@ docker run -d -p 8080:8080 \
 
 - Go 1.21
 - Gin
-- GORM (PostgreSQL/SQLite)
+- GORM (PostgreSQL)
 - Redis 
 - Docker
 

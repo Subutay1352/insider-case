@@ -51,6 +51,11 @@ func (s *Service) SendPendingMessages(ctx context.Context) error {
 	}
 
 	for _, msg := range messages {
+		if ctx.Err() != nil {
+			s.repo.UpdateMessageStatusOnly(ctx, msg.ID, MessageStatusQueued)
+			continue
+		}
+
 		if err := s.processMessage(ctx, msg); err != nil {
 			if err := s.handleFailedMessage(ctx, msg, err); err != nil {
 				logger.Error("Failed to handle failed message",
@@ -58,7 +63,6 @@ func (s *Service) SendPendingMessages(ctx context.Context) error {
 					"error", err,
 				)
 			}
-			continue
 		}
 	}
 

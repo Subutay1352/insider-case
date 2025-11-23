@@ -2,106 +2,43 @@ package db
 
 import (
 	"context"
+	"insider-case/internal/constants"
 	"insider-case/internal/domain/message"
+	"insider-case/internal/infrastructure/db/repository"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type Repository struct {
-	db     *gorm.DB
-	dbType string
+	db            *gorm.DB
+	queryExecutor repository.QueryExecutor
 }
 
 func NewRepository(db *gorm.DB, dbType string) message.Repository {
+	var executor repository.QueryExecutor
+
+	switch dbType {
+	case constants.DBTypePostgres:
+		executor = repository.NewPostgresExecutor()
+	default:
+		executor = repository.NewPostgresExecutor()
+	}
+
 	return &Repository{
-		db:     db,
-		dbType: dbType,
+		db:            db,
+		queryExecutor: executor,
 	}
 }
 
 func NewPostgresRepository(db *gorm.DB) message.Repository {
 	return &Repository{
-		db:     db,
-		dbType: DBTypePostgres,
+		db:            db,
+		queryExecutor: repository.NewPostgresExecutor(),
 	}
 }
 
 func (r *Repository) GetUnsentMessages(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
-	if r.dbType == DBTypePostgres {
-		return r.getUnsentMessagesPostgres(ctx, limit, maxRetryAttempts)
-	}
-	return r.getUnsentMessagesSQLite(ctx, limit, maxRetryAttempts)
-}
-
-func (r *Repository) getUnsentMessagesPostgres(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
-	var messages []*message.Message
-
-	query := `
-		UPDATE messages
-		SET status = 'processing'
-		WHERE id IN (
-			SELECT id FROM messages
-			WHERE (status = $1 OR (status = $2 AND retry_count < $3))
-			ORDER BY created_at ASC
-			LIMIT $4
-			FOR UPDATE SKIP LOCKED
-		)
-		RETURNING id, "to", content, status, message_id, retry_count, created_at, updated_at
-	`
-
-	return messages, r.db.WithContext(ctx).Raw(query,
-		message.MessageStatusQueued,
-		message.MessageStatusFailed,
-		maxRetryAttempts,
-		limit,
-	).Scan(&messages).Error
-}
-
-func (r *Repository) getUnsentMessagesSQLite(ctx context.Context, limit int, maxRetryAttempts int) ([]*message.Message, error) {
-	var messages []*message.Message
-
-	tx := r.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Where("status = ? OR (status = ? AND retry_count < ?)",
-		message.MessageStatusQueued,
-		message.MessageStatusFailed,
-		maxRetryAttempts).
-		Order("created_at ASC").
-		Limit(limit).
-		Clauses(clause.Locking{Strength: "UPDATE"}).
-		Find(&messages).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	if len(messages) == 0 {
-		tx.Rollback()
-		return nil, nil
-	}
-
-	ids := make([]uint, len(messages))
-	for i, msg := range messages {
-		ids[i] = msg.ID
-		msg.Status = message.MessageStatusProcessing
-	}
-
-	if err := tx.Model(&message.Message{}).
-		Where("id IN ?", ids).
-		Update("status", message.MessageStatusProcessing).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	return messages, tx.Commit().Error
+	return r.queryExecutor.GetUnsentMessages(ctx, r.db, limit, maxRetryAttempts)
 }
 
 func (r *Repository) UpdateMessageStatus(ctx context.Context, id uint, status message.MessageStatus, messageID string) error {

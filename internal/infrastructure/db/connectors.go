@@ -6,7 +6,6 @@ import (
 	"insider-case/internal/pkg/logger"
 
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -20,18 +19,6 @@ func NewPostgresConnector(cfg *config.DatabaseConfig) Connector {
 
 func (c *PostgresConnector) Connect() (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(c.cfg.GetDSN()), gormConfig(c.cfg))
-}
-
-type SQLiteConnector struct {
-	cfg *config.DatabaseConfig
-}
-
-func NewSQLiteConnector(cfg *config.DatabaseConfig) Connector {
-	return &SQLiteConnector{cfg: cfg}
-}
-
-func (c *SQLiteConnector) Connect() (*gorm.DB, error) {
-	return gorm.Open(sqlite.Open(c.cfg.Path), gormConfig(c.cfg))
 }
 
 type unsupportedConnector struct {

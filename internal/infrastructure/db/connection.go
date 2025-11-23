@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"insider-case/internal/config"
+	"insider-case/internal/constants"
 	"insider-case/internal/pkg/logger"
 
 	"gorm.io/gorm"
@@ -58,14 +59,12 @@ func InitDB(cfg *config.Config) (*gorm.DB, error) {
 func NewConnector(dbCfg *config.DatabaseConfig) Connector {
 	dbType := dbCfg.Type
 	if dbType == "" {
-		dbType = DBTypePostgres
+		dbType = constants.DBTypePostgres
 	}
 
 	switch dbType {
-	case DBTypePostgres:
+	case constants.DBTypePostgres:
 		return NewPostgresConnector(dbCfg)
-	case DBTypeSQLite:
-		return NewSQLiteConnector(dbCfg)
 	default:
 		return &unsupportedConnector{dbType: dbType}
 	}

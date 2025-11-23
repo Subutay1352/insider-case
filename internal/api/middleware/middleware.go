@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"insider-case/internal/api"
+	"insider-case/internal/constants"
 	"insider-case/internal/pkg/logger"
 	"net/http"
 	"time"
@@ -47,7 +47,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, "+api.HeaderAccessToken)
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, "+constants.HeaderAccessToken)
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(200)
@@ -76,7 +76,7 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 			logger.Warn("Access token is not configured, all requests will be rejected")
 		}
 
-		token := c.GetHeader(api.HeaderAccessToken)
+		token := c.GetHeader(constants.HeaderAccessToken)
 		if token == "" {
 			token = c.GetHeader("x-access-token")
 		}
@@ -84,11 +84,11 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 			token = c.GetHeader("X-ACCESS-TOKEN")
 		}
 		if token == "" {
-			token = c.Request.Header.Get(api.HeaderAccessToken)
+			token = c.Request.Header.Get(constants.HeaderAccessToken)
 		}
 
 		if token == "" {
-			logger.Warn("Unauthorized access attempt - missing "+api.HeaderAccessToken,
+			logger.Warn("Unauthorized access attempt - missing "+constants.HeaderAccessToken,
 				"path", c.Request.URL.Path,
 				"method", c.Request.Method,
 				"client_ip", c.ClientIP(),
@@ -96,14 +96,14 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"status_code", http.StatusUnauthorized,
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: " + api.HeaderAccessToken + " header is required",
+				"error": "Unauthorized: " + constants.HeaderAccessToken + " header is required",
 			})
 			c.Abort()
 			return
 		}
 
 		if token != accessToken {
-			logger.Warn("Unauthorized access attempt - invalid "+api.HeaderAccessToken,
+			logger.Warn("Unauthorized access attempt - invalid "+constants.HeaderAccessToken,
 				"path", c.Request.URL.Path,
 				"method", c.Request.Method,
 				"client_ip", c.ClientIP(),
@@ -112,7 +112,7 @@ func AuthMiddleware(accessToken string) gin.HandlerFunc {
 				"token_provided", token[:min(len(token), 10)]+"...", // Log first 10 chars for security
 			)
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: Invalid " + api.HeaderAccessToken,
+				"error": "Unauthorized: Invalid " + constants.HeaderAccessToken,
 			})
 			c.Abort()
 			return

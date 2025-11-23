@@ -1,17 +1,20 @@
 package message
 
-import "time"
+import (
+	"insider-case/internal/constants"
+	"time"
+)
 
 // MessageStatus represents the status of a message
 type MessageStatus string
 
 const (
-	MessageStatusQueued     MessageStatus = "queued"     // Kuyruğa alındı, gönderilmeyi bekliyor
-	MessageStatusProcessing MessageStatus = "processing" // Şu an gönderiliyor
-	MessageStatusSent       MessageStatus = "sent"       // Provider'a başarıyla iletildi
-	MessageStatusDelivered  MessageStatus = "delivered"  // Alıcıya ulaştı (SMS/Email için)
-	MessageStatusFailed     MessageStatus = "failed"     // Gönderim başarısız
-	MessageStatusCancelled  MessageStatus = "cancelled"  // İptal edildi
+	MessageStatusQueued     MessageStatus = MessageStatus(constants.MessageStatusQueued)     // Kuyruğa alındı, gönderilmeyi bekliyor
+	MessageStatusProcessing MessageStatus = MessageStatus(constants.MessageStatusProcessing) // Şu an gönderiliyor
+	MessageStatusSent       MessageStatus = MessageStatus(constants.MessageStatusSent)       // Provider'a başarıyla iletildi
+	MessageStatusDelivered  MessageStatus = MessageStatus(constants.MessageStatusDelivered)
+	MessageStatusFailed     MessageStatus = MessageStatus(constants.MessageStatusFailed)    // Gönderim başarısız
+	MessageStatusCancelled  MessageStatus = MessageStatus(constants.MessageStatusCancelled) // İptal edildi
 )
 
 // Message represents a message entity in the domain

@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"insider-case/internal/constants"
 	"os"
 	"time"
 
@@ -38,7 +39,6 @@ type DatabaseConfig struct {
 	User            string
 	Password        string
 	Name            string
-	Path            string        // for SQLite
 	MaxOpenConns    int           // Connection pool: max open connections
 	MaxIdleConns    int           // Connection pool: max idle connections
 	ConnMaxLifetime time.Duration // Connection pool: max connection lifetime
@@ -115,13 +115,12 @@ func Load() *Config {
 			ShutdownTimeout: 10 * time.Second,
 		},
 		Database: DatabaseConfig{
-			Type:            getEnv("DB_TYPE", "postgres"),
+			Type:            getEnv("DB_TYPE", constants.DBTypePostgres),
 			Host:            getEnv("DB_HOST", "localhost"),
 			Port:            getEnv("DB_PORT", "5432"),
-			User:            getEnv("DB_USER", "postgres"),
-			Password:        getEnv("DB_PASSWORD", "postgres"),
-			Name:            getEnv("DB_NAME", "insider_case"),
-			Path:            getEnv("DB_PATH", "insider_case.db"), // Only used for SQLite
+			User:            getEnv("DB_USER", constants.DefaultDBUser),
+			Password:        getEnv("DB_PASSWORD", constants.DefaultDBPassword),
+			Name:            getEnv("DB_NAME", constants.DefaultDBName),
 			MaxOpenConns:    25,
 			MaxIdleConns:    5,
 			ConnMaxLifetime: 5 * time.Minute,
@@ -162,11 +161,8 @@ func Load() *Config {
 
 // GetDSN returns database connection string
 func (c *DatabaseConfig) GetDSN() string {
-	if c.Type == "postgres" {
-		return fmt.Sprintf(
-			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-			c.Host, c.User, c.Password, c.Name, c.Port,
-		)
-	}
-	return c.Path
+	return fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		c.Host, c.User, c.Password, c.Name, c.Port,
+	)
 }
