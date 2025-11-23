@@ -15,23 +15,15 @@ import (
 
 // setupSystemRoutes configures system-level routes (health, swagger)
 func setupSystemRoutes(router *gin.Engine, database *gorm.DB, redisClient *redis.Client) {
-	// Health check endpoint (simple)
-	router.GET(api.HealthPath, healthCheck)
-
-	// System health check endpoint (DB + Redis)
-	router.GET(api.HealthPathSystem, systemHealthCheck(database, redisClient))
+	// Health check endpoint (DB + Redis)
+	router.GET(api.HealthPath, healthCheck(database, redisClient))
 
 	// Swagger UI documentation
 	router.GET(api.SwaggerPath, ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
-// healthCheck handles simple health check requests
-func healthCheck(c *gin.Context) {
-	c.JSON(200, gin.H{"status": "ok"})
-}
-
-// systemHealthCheck handles system health check with DB and Redis connection status
-func systemHealthCheck(database *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
+// healthCheck handles health check with DB and Redis connection status
+func healthCheck(database *gorm.DB, redisClient *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		status := gin.H{}
 

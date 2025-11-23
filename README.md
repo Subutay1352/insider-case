@@ -44,14 +44,9 @@ ACCESS_TOKEN=your-access-token
 
 ## API
 
-Health check:
+Health check (DB + Redis):
 ```
 GET /health
-```
-
-System health check (DB + Redis):
-```
-GET /health/system
 ```
 
 Swagger documentation:
