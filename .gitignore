@@ -25,9 +25,6 @@ insider-case.db
 .DS_Store
 Thumbs.db
 
-# Documentation (project-specific)
-*.md
-
 # Generated Swagger docs
 docs/
 
